@@ -1,0 +1,78 @@
+<div class="container">
+	<header>
+		<nav class="navbar navbar-expand-lg navbar-light bg-dark text-light">
+			<a class="navbar-brand text-light" href="/"><strong class="fas fa-baby"></strong></a>
+
+			<div class="collapse navbar-collapse" id="navbar-supported-content">
+				<ul class="navbar-nav mr-auto">
+					<li class="nav-item {% if request.endpoint == 'index' %} active {% endif %}">
+						<a class="nav-link text-light" href="{{ url_for('index') }}">Home</a>
+					</li>
+					<li class="nav-item {% if request.endpoint == 'live' %} active {% endif %}">
+						<a class="nav-link text-light" href="{{ url_for('live') }}">Live</a>
+					</li>
+					<li class="nav-item {% if request.endpoint == 'archive' %} active {% endif %}">
+						<a class="nav-link text-light" href="{{ url_for('archive') }}">Archive</a>
+					</li>
+					<li class="nav-item">
+						<form class="form-inline " action="{{ url_for('record_switch') }}" method="POST">
+							<button id="record" class="btn btn-circle bg-dark text-danger btn_record " type="submit" name="record" value="Record" ><i class="{{ get_record_symbol() }}"></i></button>
+						</form>
+					</li>
+				</ul>
+				<ul class="navbar-nav flex-row mx-2">
+					<li id="dth_temperature_data" class="nav-item px-2">
+						<span id="dth_temperature" class="span_dht temperature"></span>
+						<i class="fas fa-temperature-low"></i>
+					</li>
+					<li id="dth_humidity_data" class="nav-item px-2">
+						<span id="dth_humidity" class="span_dht humidity"></span>
+						<i class="fas fa-water"></i>
+					</li>
+
+				</ul>
+				<ul class="navbar-nav nav-flex-icons">
+					<li class="nav-item dropdown ">
+						<a class="nav-link dropdown-toggle bg-dark text-light" href="#" id="navbar-dropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-user fa-fw"></i>{{session.username}}</a>
+						<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+							<a class="dropdown-item" href="/logout">Logout</a>
+						</div>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</header>
+</div>
+<script>
+	$("#record").on('click', function() {
+		if ($(this).find('i').hasClass("far fa-circle")){
+			$(this).find('i').removeClass("far fa-circle").addClass("fas fa-circle");
+		}
+		else{
+			$(this).find('i').removeClass("fas fa-circle").addClass("far fa-circle");
+		}
+
+	});
+
+	$(document).ready(function(){
+
+		socket.on('dht_data', function(data) {
+
+			//console.log("received");
+			//console.log(data);
+
+			if (data.temp > 28){
+				$("#dth_temperature_data").find("i").removeClass("fas fa-temperature-low").addClass("fas fa-temperature-high");
+			}
+			else{
+				$("#dth_temperature_data").find("i").removeClass("fas fa-temperature-high").addClass("fas fa-temperature-low");
+			}
+
+			$("#dth_temperature").html(data.temp);
+			//$("#dth_temperature_data").css("color", data.temp_color);
+			$("#dth_humidity").html(data.hum);
+			//$("#dth_humidity_data").css("color", data.hum_color);
+
+		});
+    });
+</script>

@@ -1,0 +1,17 @@
+.video {
+	margin-left: auto;
+	margin-right: auto;
+	height: 480px;
+	width: 640px;
+	display: block;
+
+}
+
+.btn-circle, .btn-circle-3d {
+  border-radius: 50% !important;
+
+}
+
+.btn_record {
+
+}

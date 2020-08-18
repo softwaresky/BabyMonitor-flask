@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="col-12 text-center">
+	<img class="video" src="{{ url_for('videostream') }}">
+</div>
+<div class="col-12 text-center">
+	<button id="listen" class="btn btn-success btn-lg"><i class="fas fa-volume-mute fa-fw"></i><span>Listen</span></button>
+</div>
+
+
+{% endblock %}
