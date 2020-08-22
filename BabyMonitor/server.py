@@ -213,7 +213,7 @@ class DhtStreamThread(threading.Thread):
 			socketio.emit('dht_data', dict_data)
 			time.sleep(0.05)
 
-class DetectorsThread(threading.Thread):
+class ThreadManagerMain(ThreadManager):
 
 	def __init__(self):
 		super(self.__class__, self).__init__()
@@ -228,50 +228,57 @@ class DetectorsThread(threading.Thread):
 				return False
 		return True
 
+	def write_in_base(self):
+		dict_dht_data = thread_manager.dht_detector.get_data()
+		current_dht_values = (dict_dht_data["hum"], dict_dht_data["temp"])
+
+		with app.app_context():
+			wm = None
+			det = None
+			if not self.is_equal_values(current_dht_values, self.last_dht_values):
+				wm = WeatherMeasures(humidity=current_dht_values[0],
+									 temperature=current_dht_values[1])
+				db.session.add(wm)
+
+			if thread_manager.record_state:
+				current_det_values = (thread_manager.motion_detector.value, thread_manager.noise_detector.value)
+				if sum(current_det_values) > 0.0 and not self.is_equal_values(current_det_values, self.last_det_values):
+					det = Detections(motion=current_det_values[0],
+									 noise=current_det_values[1])
+					db.session.add(det)
+
+					self.last_det_values = current_det_values
+
+			if wm or det:
+				db.session.commit()
+				if wm:
+					print(f"Insert {wm}")
+				if det:
+					print(f"Insert {det}")
+			pass
+
+		self.last_dht_values = current_dht_values
+
 	def run(self):
 
+		self.motion_detector.start()
+		self.noise_detector.start()
+		self.dht_detector.start()
+		self.is_merged = False
+
 		while True:
+			self.merge_data()
+			self.write_in_base()
+			time.sleep(.5)
 
-			dict_dht_data = thread_manager.dht_detector.get_data()
-			current_dht_values = (dict_dht_data["hum"], dict_dht_data["temp"])
-
-			with app.app_context():
-				wm = None
-				det = None
-				if not self.is_equal_values(current_dht_values, self.last_dht_values):
-
-					wm = WeatherMeasures(humidity=current_dht_values[0],
-										temperature=current_dht_values[1])
-					db.session.add(wm)
-
-				if thread_manager.record_state:
-					current_det_values = (thread_manager.motion_detector.value, thread_manager.noise_detector.value)
-					if sum(current_det_values) > 0.0 and not self.is_equal_values(current_det_values, self.last_det_values):
-
-						det = Detections(motion=current_det_values[0],
-										 noise=current_det_values[1])
-						db.session.add(det)
-
-						self.last_det_values = current_det_values
-
-				if wm or det:
-					db.session.commit()
-					if wm:
-						print(f"Insert {wm}")
-					if det:
-						print(f"Insert {det}")
-				pass
-
-			self.last_dht_values = current_dht_values
-			time.sleep(0.5)
+# TODO: Add chart for Weather Measures and Detectors
 
 app.jinja_env.globals.update(get_records=get_records)
 app.jinja_env.globals.update(get_record_symbol=get_record_symbol)
 
-thread_manager = ThreadManager()
+thread_manager = ThreadManagerMain()
 thread_manager.media_dir = MEDIA_DIR
-thread_manager.fill_do_record()
-thread_manager.do_record = False
+
 time.sleep(1)
 thread_manager.start()
 
@@ -281,8 +288,8 @@ sound_stream_t.start()
 dht_stream_t = DhtStreamThread()
 dht_stream_t.start()
 
-detector_t = DetectorsThread()
-detector_t.start()
+# detector_t = DetectorsThread()
+# detector_t.start()
 
 if __name__ == '__main__':
 	os.environ["PA_ALSA_PLUGHW"] = "1"
