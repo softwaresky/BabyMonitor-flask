@@ -127,7 +127,8 @@ class NoiseDetector(threading.Thread):
                 self._value = rms
 
                 self.detect_noise = sum([x > self.threshold for x in deque_observer]) > 0
-                self.do_recording()
+                if self.do_record:
+                    self.do_recording()
 
                 pass
         except KeyboardInterrupt:
@@ -143,9 +144,8 @@ class NoiseDetector(threading.Thread):
             self.record.append(self.chunk)
 
         elif self.is_recording():
-            if self.do_record:
-                # self.save(list(self.deque_history) + self.record)
-                self.save(self.record)
+            # self.save(list(self.deque_history) + self.record)
+            self.save(self.record)
 
             self.log_manager.log("Listening...")
 
