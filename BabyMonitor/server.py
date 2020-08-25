@@ -348,8 +348,6 @@ class ThreadManagerMain(ThreadManager):
 			self.write_in_base()
 			time.sleep(2)
 
-# TODO: Add chart for Weather Measures and Detectors using plotly library
-
 app.jinja_env.globals.update(get_records=get_records)
 app.jinja_env.globals.update(get_record_symbol=get_record_symbol)
 
