@@ -15,3 +15,5 @@ Real time web service for keeping track of a baby's sound and motion, while meas
 ## Archive recorded data: audio + video
 ![archive_img](https://github.com/softwaresky/BabyMonitor-flask/blob/master/screenshots/img_03.png)
 
+## Realtime chart for Temperature and Humidity read from Database
+![chart_readtime_wm](https://github.com/softwaresky/BabyMonitor-flask/blob/master/screenshots/img_04.png)
