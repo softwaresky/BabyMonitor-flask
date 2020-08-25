@@ -11,6 +11,9 @@
 					<li class="nav-item {% if request.endpoint == 'live' %} active {% endif %}">
 						<a class="nav-link text-light" href="{{ url_for('live') }}">Live</a>
 					</li>
+					<li class="nav-item">
+						<a class="nav-link text-light" href="{{ url_for('chart_view') }}">Chart</a>
+					</li>
 					<li class="nav-item {% if request.endpoint == 'archive' %} active {% endif %}">
 						<a class="nav-link text-light" href="{{ url_for('archive') }}">Archive</a>
 					</li>
@@ -20,6 +23,7 @@
 						</form>
 					</li>
 				</ul>
+
 				<ul class="navbar-nav flex-row mx-2">
 					<li id="dth_temperature_data" class="nav-item px-2">
 						<span id="dth_temperature" class="span_dht temperature"></span>
@@ -44,22 +48,22 @@
 	</header>
 </div>
 <script>
-	$("#record").on('click', function() {
-		if ($(this).find('i').hasClass("far fa-circle")){
-			$(this).find('i').removeClass("far fa-circle").addClass("fas fa-circle");
-		}
-		else{
-			$(this).find('i').removeClass("fas fa-circle").addClass("far fa-circle");
-		}
-
-	});
-
 	$(document).ready(function(){
 
-		socket.on('dht_data', function(data) {
+		$("#record").on('click', function() {
+			if ($(this).find('i').hasClass("far fa-circle")){
+				$(this).find('i').removeClass("far fa-circle").addClass("fas fa-circle");
+			}
+			else{
+				$(this).find('i').removeClass("fas fa-circle").addClass("far fa-circle");
+			}
 
-			//console.log("received");
-			//console.log(data);
+		});
+
+		const source = new EventSource("/dht-data");
+
+        source.onmessage = function (event) {
+        	const data = JSON.parse(event.data);
 
 			if (data.temp > 28){
 				$("#dth_temperature_data").find("i").removeClass("fas fa-temperature-low").addClass("fas fa-temperature-high");
@@ -73,6 +77,8 @@
 			$("#dth_humidity").html(data.hum);
 			//$("#dth_humidity_data").css("color", data.hum_color);
 
-		});
+		};
+
+
     });
 </script>

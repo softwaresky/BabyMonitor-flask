@@ -2,6 +2,7 @@ import os
 import threading
 import time
 from functools import wraps
+import json
 
 from flask import Flask, render_template, Response, send_file, redirect, url_for, request, session, g
 from flask_socketio import SocketIO
@@ -76,6 +77,7 @@ def login():
 			error_msg = "Incorrect password!"
 
 		if error_msg:
+			print (error_msg)
 			ip_client.update_count()
 
 		if not error_msg and ip_client.is_allow():	# Is logged in
@@ -159,6 +161,61 @@ def archive_play(filename):
 	# return send_file('archive/' + filename)
 	return send_file('media/' + filename)
 
+@app.route("/chart")
+def chart_view():
+	return render_template("chart.html", legend="Weather Measures")
+
+# Read-Time chart
+@app.route('/chart-data-wm')
+def chart_data():
+
+	def generate_data():
+
+		lst_ids = []
+		while True:
+
+			with app.app_context():
+				# lst_new_data = db.session.query(WeatherMeasures).filter(~WeatherMeasures.id.in_(lst_ids)).all()
+				dict_items = {}
+
+				for item_ in WeatherMeasures.query.all():
+					dict_items[item_.id] = item_
+
+				lst_diff = list(set(dict_items.keys()) - set(lst_ids))
+
+				for id_ in lst_diff:
+					wm_ = dict_items[id_]
+					dict_data = {}
+					dict_data["timestamp"] = wm_.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+					dict_data["temperature"] = wm_.temperature
+					dict_data["humidity"] = wm_.humidity
+
+					json_data = json.dumps(dict_data)
+					yield f"data:{json_data}\n\n"
+
+				lst_ids += dict_items.keys()
+
+				time.sleep(2)
+
+
+	return Response(generate_data(), mimetype='text/event-stream')
+
+
+
+@app.route("/dht-data")
+def dht_data():
+
+	def generate_data():
+		while True:
+			dict_data = thread_manager.dht_detector.get_data()
+			json_data = json.dumps(dict_data)
+			yield f"data:{json_data}\n\n"
+
+			time.sleep(2)
+
+
+	return Response(generate_data(), mimetype='text/event-stream')
+
 @socketio.on('connect')
 def connect():
 	print('Client connected')
@@ -212,6 +269,26 @@ class DhtStreamThread(threading.Thread):
 			dict_data = thread_manager.dht_detector.get_data()
 			socketio.emit('dht_data', dict_data)
 			time.sleep(0.05)
+
+class DhtChartStreamThread(threading.Thread):
+	def __init__(self):
+		self.delay = 1
+		super(self.__class__, self).__init__()
+
+	def run(self):
+
+		lst_data = []
+		while True:
+			with app.app_context():
+				lst_data = list(set(WeatherMeasures.query.all()) - set(lst_data))
+
+				for wm_ in lst_data:
+					dict_data = {}
+					dict_data["time"] = wm_.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+					dict_data["value"] = wm_.temperature
+					socketio.emit('chart-data', dict_data)
+					time.sleep(0.05)
+
 
 class ThreadManagerMain(ThreadManager):
 
@@ -269,9 +346,9 @@ class ThreadManagerMain(ThreadManager):
 		while True:
 			self.merge_data()
 			self.write_in_base()
-			time.sleep(.5)
+			time.sleep(2)
 
-# TODO: Add chart for Weather Measures and Detectors
+# TODO: Add chart for Weather Measures and Detectors using plotly library
 
 app.jinja_env.globals.update(get_records=get_records)
 app.jinja_env.globals.update(get_record_symbol=get_record_symbol)
@@ -285,8 +362,11 @@ thread_manager.start()
 sound_stream_t = SoundStreamThread()
 sound_stream_t.start()
 
-dht_stream_t = DhtStreamThread()
-dht_stream_t.start()
+# dht_stream_t = DhtStreamThread()
+# dht_stream_t.start()
+
+# dht_chart_stream_t = DhtChartStreamThread()
+# dht_chart_stream_t.start()
 
 # detector_t = DetectorsThread()
 # detector_t.start()

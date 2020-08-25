@@ -2,28 +2,32 @@
 <html>
 <head>
 	<title>Baby Monitor</title>
-	
 	<!-- jQuery -->
 	<script type="text/javascript" src="{{ url_for('static', filename='lib/jquery/jquery-3.4.1.min.js') }}"></script>
-
 	<!-- Bootstrap -->
 	 <link rel="stylesheet" href="{{ url_for('static', filename='lib/bootstrap/css/bootstrap.min.css') }}">
-
 	<!-- Bootstrap Popper -->
 	<script type="text/javascript" src="{{ url_for('static', filename='lib/bootstrap/js/popper.min.js') }}"></script>
-
 	<!-- Bootstrap JS -->
 	 <script type="text/javascript" src="{{ url_for('static', filename='lib/bootstrap/js/bootstrap.min.js') }}"></script>
-
 	<!-- Font Awesome 5 -->
 	<link rel="stylesheet" href="{{ url_for('static', filename='lib/fontawesome/css/all.css') }}">
-
 	<!-- Socket.IO -->
 	<script type="text/javascript" src="{{ url_for('static', filename='lib/socket.io/socket.io.min.js') }}"></script>
-
 	<!-- Custom styles -->
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-
+	<!-- Chart css-->
+	<link rel="stylesheet" href="{{ url_for('static', filename='lib/Chart.js/Chart.min.css') }}" >
+	<!-- Moment.js	-->
+	<script type="text/javascript" src="{{ url_for('static', filename='js/moment.js') }}"></script>
+	<!-- Hammer	-->
+	<script type="text/javascript" src="{{ url_for('static', filename='js/hammer.min.js') }}"></script>
+	<!-- Chart -->
+	<script type="text/javascript" src="{{ url_for('static', filename='lib/Chart.js/Chart.js') }}"></script>
+	<!-- Char Zoom	-->
+	<script type="text/javascript" src="{{ url_for('static', filename='js/chartjs-plugin-zoom.js') }}"></script>
+	<!-- Chart Streaming	-->
+	<script type="text/javascript" src="{{ url_for('static', filename='js/chartjs-plugin-streaming.js') }}"></script>
 </head>
 
 <!-- Create socket -->
@@ -48,5 +52,6 @@
 
 <!-- Live -->
 <script type="text/javascript" src="{{ url_for('static', filename='js/live.js') }}"></script>
+
 
 </html>
